@@ -99,6 +99,7 @@ This lane should be run from your local machine, and will push a tag to the remo
 ####Actions Performed
  * Verifies the git branch is clean
  * Ensures the lane is running on the master branch
+ * Verifies the Github milestone is ready for release
  * Pulls the remote to verify the latest the branch is up to date
  * Updates the version of the info plist path used by the framework
  * Updates the the version of the podspec
@@ -124,6 +125,7 @@ It is recommended to manage these options through a .env file. See `fastlane/.en
  * **`allow_dirty_branch`**: Allows the git branch to be dirty before continuing. Defaults to false
  * **`remote`**: The name of the git remote. Defaults to `origin`. (`DEPLOY_REMOTE`)
  * **`allow_branch`**: The name of the branch to build from. Defaults to `master`. (`DEPLOY_BRANCH`)
+ * **`skip_validate_github_milestone`**: Skips validating a Github milestone. Defaults to false
  * **`skip_git_pull`**: Skips pulling the git remote. Defaults to false
  * **`skip_plist_update`**: Skips updating the version of the info plist. Defaults to false
  * **`plist_path`**: The path of the plist file to update. (`DEPLOY_PLIST_PATH`)
@@ -154,6 +156,7 @@ This lane should be from a CI machine, after the tests have passed on the tag bu
  * Uploads Carthage Framework to Github Release
  * Pushes podspec to pod trunk
  * Lints the pod spec to ensure it is valid
+ * Closes the associated Github milestone
 
 ####Example:
 
@@ -173,6 +176,7 @@ It is recommended to manage these options through a .env file. See `fastlane/.en
  * **`skip_carthage_framework`**: Skips creating a carthage framework. If building a swift framework, this should be disabled. Defaults to false.
  * **`skip_pod_push`**: Skips pushing the podspec to trunk.
  * **`skip_podspec_update`**: Skips updating the version of the podspec. Defaults to false
+* **`skip_closing_github_milestone`**: Skips closing the associated Github milestone. Defaults to false
 
 #####Environment Variable Only Options
  * **`GITHUB_OWNER`**: The owner of the Github repository, used in changelog generation and Github release management

@@ -86,6 +86,7 @@ desc "Prepares the framework for release"
 desc "This lane should be run from your local machine, and will push a tag to the remote when finished."
 desc " * Verifies the git branch is clean"
 desc " * Ensures the lane is running on the master branch"
+desc " * Verifies the Github milestone is ready for release"
 desc " * Pulls the remote to verify the latest the branch is up to date"
 desc " * Updates the version of the info plist path used by the framework"
 desc " * Updates the the version of the podspec"
@@ -103,6 +104,7 @@ desc " * **`version`** (required): The new version of the framework"
 desc " * **`allow_dirty_branch`**: Allows the git branch to be dirty before continuing. Defaults to false"
 desc " * **`remote`**: The name of the git remote. Defaults to `origin`. (`DEPLOY_REMOTE`)"
 desc " * **`allow_branch`**: The name of the branch to build from. Defaults to `master`. (`DEPLOY_BRANCH`)"
+desc " * **`skip_validate_github_milestone`**: Skips validating a Github milestone. Defaults to false"
 desc " * **`skip_git_pull`**: Skips pulling the git remote. Defaults to false"
 desc " * **`skip_plist_update`**: Skips updating the version of the info plist. Defaults to false"
 desc " * **`plist_path`**: The path of the plist file to update. (`DEPLOY_PLIST_PATH`)"
@@ -130,6 +132,14 @@ lane :prepare_framework_release do |options|
   ensure_git_branch(
     branch:allowed_branch
   )
+  
+  #Verify the Github milestone is ready for release
+  if options[:skip_validate_github_milestone] != true
+    af_get_github_milestone(
+      title: options[:version],
+      verify_for_release:true
+    )
+  end
   
   #Pull the latest to ensure we are up to date
   if options[:skip_git_pull] != true
@@ -220,6 +230,7 @@ desc " * Builds Carthage Frameworks"
 desc " * Uploads Carthage Framework to Github Release"
 desc " * Pushes podspec to pod trunk"
 desc " * Lints the pod spec to ensure it is valid"
+desc " * Closes the associated Github milestone"
 desc "####Example:"
 desc "```\nfastlane complete_framework_release --env deploy\n```"
 desc "####Options"
@@ -232,6 +243,7 @@ desc " * **`skip_github_release`**: Skips creating a Github release. Defaults to
 desc " * **`skip_carthage_framework`**: Skips creating a carthage framework. If building a swift framework, this should be disabled. Defaults to false."
 desc " * **`skip_pod_push`**: Skips pushing the podspec to trunk."
 desc " * **`skip_podspec_update`**: Skips updating the version of the podspec. Defaults to false"
+desc " * **`skip_closing_github_milestone`**: Skips closing the associated Github milestone. Defaults to false"
 desc ""
 lane :complete_framework_release do |options|
   if options[:skip_ci_check] != true
@@ -293,6 +305,16 @@ lane :complete_framework_release do |options|
     
     #pod spec lint
     af_pod_spec_lint
+  end
+  
+  if options[:skip_closing_github_milestone] != true
+    af_get_github_milestone(
+      title: version
+    )
+    
+    af_update_github_milestone(
+      state: "closed"
+    )
   end
 end
 
