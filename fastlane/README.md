@@ -1,0 +1,187 @@
+fastlane documentation
+================
+# Installation
+```
+[sudo] gem install fastlane
+```
+# Available Actions
+---
+## Test Lanes
+### travis_commit
+Runs tests and builds example for the given environment
+
+The lane to run by travis ci on every commit This lanes calls the lanes `test_framework` and `build_example`.
+
+####Example:
+
+```
+fastlane travis_commit configuration:Debug --env ios91
+```
+
+####Options
+
+ * **`configuration`**: The build configuration to use. (`AF_CONFIGURATION`)
+
+
+### test_framework
+Runs all tests for the given environment
+
+Set `scan` action environment variables to control test configuration
+
+####Example:
+
+```
+fastlane test_framework configuration:Debug --env ios91
+```
+
+####Options
+
+ * **`configuration`**: The build configuration to use.
+
+
+### build_example
+Builds the example file
+
+Set `xcodebuild` action environment variables to control build configuration
+
+####Example:
+
+```
+fastlane build_example configuration:Debug --env ios91
+```
+
+####Options
+
+ * **`configuration`**: The build configuration to use.
+
+---
+## Deployment Lanes
+To deploy a new version of AFNetworking, a contributor does the following:
+
+```
+fastlane prepare_framework_release version:{THE NEW VERSION} --env deploy
+```
+And profit💰
+
+What actually happens is the following:
+
+ 1. A contributer will run `fastlane prepare_framework_release version:{THE NEW VERSION} --env deploy`. See the documentation below for all actions that are performed by `prepare_framework_release`
+ 2. On success, the tag will automatically be pushed to the remote
+ 3. Travis will generate a new build job
+ 4. On a successful build from a tag, travis will run `fastlane complete_framework_release --env deploy`, which publishes all released artifacts. See the documentation below for all actions that are performed by `complete_framework_release`
+
+
+It is recommended to manage the deployment lanes with a .env file, such as the following:
+
+```
+DEPLOY_BRANCH=master
+DEPLOY_PLIST_PATH=Framework/Info.plist
+DEPLOY_PODSPEC=AFNetworking.podspec
+DEPLOY_REMOTE=origin
+
+DEPLOY_CHANGELOG_PATH=CHANGELOG.md
+DEPLOY_CHANGELOG_DELIMITER=---
+
+# Used for CHANGELOG Generation and Github Release Management
+GITHUB_OWNER=AFNetworking
+GITHUB_REPOSITORY=AFNetworking
+# CI Should Provide GITHUB_API_TOKEN
+
+CARTHAGE_FRAMEWORK_NAME=AFNetworking
+```
+
+### prepare_framework_release
+
+Prepares the framework for release
+
+This lane should be run from your local machine, and will push a tag to the remote when finished.
+
+####Actions Performed
+ * Verifies the git branch is clean
+ * Ensures the lane is running on the master branch
+ * Pulls the remote to verify the latest the branch is up to date
+ * Updates the version of the info plist path used by the framework
+ * Updates the the version of the podspec
+ * Generates a changelog based on the Github milestone
+ * Updates the changelog file
+ * Commits the changes
+ * Pushes the commited branch
+ * Creates a tag
+ * Pushes the tag
+
+####Example:
+
+```
+fastlane prepare_framework_release version:3.0.0 --env deploy
+```
+
+####Options
+
+It is recommended to manage these options through a .env file. See `fastlane/.env.deploy` for an example.
+
+#####CLI Options
+ * **`version`** (required): The new version of the framework
+ * **`allow_dirty_branch`**: Allows the git branch to be dirty before continuing. Defaults to false
+ * **`remote`**: The name of the git remote. Defaults to `origin`. (`DEPLOY_REMOTE`)
+ * **`allow_branch`**: The name of the branch to build from. Defaults to `master`. (`DEPLOY_BRANCH`)
+ * **`skip_git_pull`**: Skips pulling the git remote. Defaults to false
+ * **`skip_plist_update`**: Skips updating the version of the info plist. Defaults to false
+ * **`plist_path`**: The path of the plist file to update. (`DEPLOY_PLIST_PATH`)
+ * **`skip_podspec_update`**: Skips updating the version of the podspec. Defaults to false
+ * **`podspec`**: The path of the podspec file to update. (`DEPLOY_PODSPEC`)
+ * **`skip_changelog`**: Skip generating a changelog. Defaults to false.
+ * **`changelog_path`**: The path to the changelog file. (`DEPLOY_CHANGELOG_PATH`)
+ * **`changelog_insert_delimiter`**: The delimiter to insert the changelog after. (`DEPLOY_CHANGELOG_DELIMITER`)
+
+#####Environment Variable Only Options
+ * **`GITHUB_OWNER`**: The owner of the Github repository, used in changelog generation and Github release management
+ * **`GITHUB_REPOSITORY`**: The Github repository, used in changelog generation and Github release management
+ * **`GITHUB_API_TOKEN`**: The Github API token, used in changelog generation and Github release management. It is recommended to provide this securely through a CI service. Generate one at [https://github.com/settings/tokens](https://github.com/settings/tokens)
+
+### complete_framework_release
+
+Completes the framework release
+
+This lane should be from a CI machine, after the tests have passed on the tag build.
+
+####Actions Performed
+ * Verifies the git branch is clean
+ * Ensures the lane is running on the master branch
+ * Pulls the remote to verify the latest the branch is up to date
+ * Generates a changelog for the Github Release
+ * Creates a Github Release
+ * Builds Carthage Frameworks
+ * Uploads Carthage Framework to Github Release
+ * Pushes podspec to pod trunk
+ * Lints the pod spec to ensure it is valid
+
+####Example:
+
+```
+fastlane complete_framework_release --env deploy
+```
+
+####Options
+#####CLI Options
+It is recommended to manage these options through a .env file. See `fastlane/.env.deploy` for an example.
+
+ * **`version`**: The new version of the framework. Defaults to the last tag in the repo
+ * **`allow_dirty_branch`**: Allows the git branch to be dirty before continuing. Defaults to false
+ * **`remote`**: The name of the git remote. Defaults to `origin`. (`DEPLOY_REMOTE`)
+ * **`allow_branch`**: The name of the branch to build from. Defaults to `master`. (`DEPLOY_BRANCH`)
+ * **`skip_github_release`**: Skips creating a Github release. Defaults to false
+ * **`skip_carthage_framework`**: Skips creating a carthage framework. If building a swift framework, this should be disabled. Defaults to false.
+ * **`skip_pod_push`**: Skips pushing the podspec to trunk.
+ * **`skip_podspec_update`**: Skips updating the version of the podspec. Defaults to false
+
+#####Environment Variable Only Options
+ * **`GITHUB_OWNER`**: The owner of the Github repository, used in changelog generation and Github release management
+ * **`GITHUB_REPOSITORY`**: The Github repository, used in changelog generation and Github release management
+ * **`GITHUB_API_TOKEN`**: The Github API token, used in changelog generation and Github release management. It is recommended to provide this securely through a CI service. Generate one at [https://github.com/settings/tokens](https://github.com/settings/tokens)
+ * **`CARTHAGE_FRAMEWORK_NAME`**: The name of the generated Carthage framework
+
+----
+
+Generate this documentation by running `fastlane docs`
+More information about fastlane can be found on [https://fastlane.tools](https://fastlane.tools).
+The documentation of fastlane can be found on [GitHub](https://github.com/KrauseFx/fastlane)
