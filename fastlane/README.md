@@ -101,8 +101,8 @@ This lane should be run from your local machine, and will push a tag to the remo
  * Ensures the lane is running on the master branch
  * Verifies the Github milestone is ready for release
  * Pulls the remote to verify the latest the branch is up to date
- * Updates the version of the info plist path used by the framework
- * Updates the the version of the podspec
+ * Updates the version of the info plist used by the framework
+ * Updates the version of the podspec
  * Generates a changelog based on the Github milestone
  * Updates the changelog file
  * Commits the changes
@@ -147,6 +147,7 @@ Completes the framework release
 This lane should be from a CI machine, after the tests have passed on the tag build.
 
 ####Actions Performed
+ * Verifies the lane is running on a CI machine
  * Verifies the git branch is clean
  * Ensures the lane is running on the master branch
  * Pulls the remote to verify the latest the branch is up to date
@@ -168,6 +169,7 @@ fastlane complete_framework_release --env deploy
 #####CLI Options
 It is recommended to manage these options through a .env file. See `fastlane/.env.deploy` for an example.
 
+ * **`skip_ci_check`**: Bypass the requirement to run on a CI machine. Defaults to false
  * **`version`**: The new version of the framework. Defaults to the last tag in the repo
  * **`allow_dirty_branch`**: Allows the git branch to be dirty before continuing. Defaults to false
  * **`remote`**: The name of the git remote. Defaults to `origin`. (`DEPLOY_REMOTE`)
