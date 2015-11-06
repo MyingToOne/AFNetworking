@@ -12,7 +12,7 @@ module Fastlane
 
     class AfGenerateGithubMilestoneChangelogAction < Action
       def self.markdown_for_changelog_section (section, items)
-        changelog = "\n#####{section}\n"
+        changelog = "\n#### #{section}\n"
         items.each do |item|
           changelog << "* #{item["title"]}\n"
           changelog << " * Fixed by [#{item["user"]["login"]}](#{item["user"]["html_url"]}) in [##{item["number"]}](#{item["html_url"]}).\n"
